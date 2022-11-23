@@ -6,8 +6,8 @@
 #
 
 from digiskr import Option, Config
-from kiwi import KiwiWorker
-import timespan
+from lib.kiwi import KiwiWorker
+from lib import timespan
 from digiskr import config, DecoderQueue
 from digiskr.pskreporter import PskReporter
 from digiskr.wsprnet import Wsprnet

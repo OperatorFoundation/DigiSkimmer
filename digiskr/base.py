@@ -12,7 +12,7 @@ from abc import ABC, ABCMeta, abstractmethod
 from digiskr import config
 from digiskr.config import Config
 
-from kiwi.client import KiwiSDRStream
+from lib.kiwi.client import KiwiSDRStream
 
 
 class QueueJob(object):

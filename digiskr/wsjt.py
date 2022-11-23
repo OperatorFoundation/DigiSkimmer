@@ -174,10 +174,21 @@ class WsjtParser(LineParser):
                 else:
                     decoder = JT9Decoder()
                 out = decoder.parse(msg, freq)
+                # TODO: print the whole out dictionary
+                # print(out)
+                stationName = self.getStation()
+                print(f"Station Name: {stationName}")
+
+                mode = out["mode"]
+                print(f"Mode: {mode}")
+
+                timestamp = time.strftime("%H%M%S", time.localtime(out["timestamp"]))
+                print(f"Timestamp: {timestamp}")
+
                 logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%2.6f %s : %s %s",
-                             self.getStation(),
-                             out["mode"],
-                             time.strftime("%H%M%S",  time.localtime(out["timestamp"])),
+                             stationName,
+                             mode,
+                             timestamp,
                              out["db"], out["dt"], out["freq"], out["msg"],
                              out["callsign"] if "callsign" in out else "-",
                              out["locator"] if "locator" in out else "")
