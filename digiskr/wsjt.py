@@ -177,21 +177,37 @@ class WsjtParser(LineParser):
                 # TODO: print the whole out dictionary
                 # print(out)
                 stationName = self.getStation()
-                print(f"Station Name: {stationName}")
-
                 mode = out["mode"]
-                print(f"Mode: {mode}")
-
                 timestamp = time.strftime("%H%M%S", time.localtime(out["timestamp"]))
+                db = out["db"]
+                dt = out["dt"]
+                frequency = out["freq"]
+                message = out["msg"]
+                callsign = out["callsign"] if "callsign" in out else "-"
+                locator = out["callsign"] if "callsign" in out else "-"
+                print(f"Mode: {mode}")
+                print(f"Station Name: {stationName}")
                 print(f"Timestamp: {timestamp}")
+                print(f"DB: {db}")
+                print(f"DT: {dt}")
+                print(f"Frequency: {frequency}")
+                print(f"Message: {message}")
+                print(f"Callsign: {callsign}")
+                print(f"Locator: {locator}")
+                print("")
+                print("/////////////")
+                print("")
 
                 logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%2.6f %s : %s %s",
                              stationName,
                              mode,
                              timestamp,
-                             out["db"], out["dt"], out["freq"], out["msg"],
-                             out["callsign"] if "callsign" in out else "-",
-                             out["locator"] if "locator" in out else "")
+                             db,
+                             dt,
+                             frequency,
+                             message,
+                             callsign,
+                             locator)
                 if "mode" in out:
                     if "callsign" in out and "locator" in out:
                         PskReporter.getSharedInstance(self.getStation()).spot(out)
