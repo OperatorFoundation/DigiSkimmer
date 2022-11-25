@@ -184,7 +184,7 @@ class WsjtParser(LineParser):
                 frequency = out["freq"]
                 message = out["msg"]
                 callsign = out["callsign"] if "callsign" in out else "-"
-                locator = out["callsign"] if "callsign" in out else "-"
+                locator = out["locator"] if "locator" in out else ""
                 print(f"Mode: {mode}")
                 print(f"Station Name: {stationName}")
                 print(f"Timestamp: {timestamp}")
