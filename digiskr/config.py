@@ -51,6 +51,7 @@ class Config:
             if name.startswith("__"):
                 continue
             conf[name] = value
+            print(f"Saved {name}: {value} to config.")
         return conf
 
     @staticmethod

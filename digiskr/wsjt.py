@@ -156,64 +156,88 @@ class Fst4wProfile(WsjtProfile):
         return ["jt9", "--fst4w", "-p", str(self.getInterval()), "-F", str(100), "-d", str(self.decoding_depth(self.getMode())), file]
 
 class WsjtParser(LineParser):
+    # TODO: variablize keys
+    callsign_key = "callsign"
+    mode_key = "mode"
+    timestamp_key = "timestamp"
+    db_key = "db"
+    dt_key = "dt"
+    frequency_key = "freq"
+    message_key = "msg"
+    locator_key = "locator"
+
+    def print_transmission(self, transmission_data: dict):
+        station_name = self.getStation()
+        callsign = transmission_data[self.callsign_key]
+        mode = transmission_data[self.mode_key]
+        timestamp = time.strftime("%H%M%S", time.localtime(transmission_data[self.timestamp_key]))
+        db = transmission_data[self.db_key]
+        dt = transmission_data[self.dt_key]
+        frequency = transmission_data[self.frequency_key]
+        message = transmission_data[self.message_key]
+        locator = transmission_data[self.locator_key] if self.locator_key in transmission_data else ""
+        print(f"Mode: {mode}")
+        print(f"Station Name: {station_name}")
+        print(f"Timestamp: {timestamp}")
+        print(f"DB: {db}")
+        print(f"DT: {dt}")
+        print(f"Frequency: {frequency}")
+        print(f"Message: {message}")
+        print(f"Callsign: {callsign}")
+        print(f"Locator: {locator}")
+        print("")
+        print("/////////////")
+        print("")
+
+        logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%2.6f %s : %s %s",
+                     station_name,
+                     mode,
+                     timestamp,
+                     db,
+                     dt,
+                     frequency,
+                     message,
+                     callsign,
+                     locator)
 
     def parse(self, messages):
+        config = Config.get()
         for data in messages:
             try:
                 profile, freq, raw_msg = data
                 self.dial_freq = freq
                 msg = raw_msg.decode().rstrip()
                 # known debug messages we know to skip
-                if msg.startswith("<DecodeFinished>"):  # this is what jt9 std output
+                if msg.startswith("<DecodeFinished>"):  # this is what jt9 std transmission_data
                     continue
-                if msg.startswith(" EOF on input file"):  # this is what jt9 std output
+                if msg.startswith(" EOF on input file"):  # this is what jt9 std transmission_data
                     continue
 
                 if isinstance(profile, WsprProfile):
                     decoder = WsprDecoder()
                 else:
                     decoder = JT9Decoder()
-                out = decoder.parse(msg, freq)
-                # TODO: print the whole out dictionary
-                # print(out)
-                stationName = self.getStation()
-                mode = out["mode"]
-                timestamp = time.strftime("%H%M%S", time.localtime(out["timestamp"]))
-                db = out["db"]
-                dt = out["dt"]
-                frequency = out["freq"]
-                message = out["msg"]
-                callsign = out["callsign"] if "callsign" in out else "-"
-                locator = out["locator"] if "locator" in out else ""
-                print(f"Mode: {mode}")
-                print(f"Station Name: {stationName}")
-                print(f"Timestamp: {timestamp}")
-                print(f"DB: {db}")
-                print(f"DT: {dt}")
-                print(f"Frequency: {frequency}")
-                print(f"Message: {message}")
-                print(f"Callsign: {callsign}")
-                print(f"Locator: {locator}")
-                print("")
-                print("/////////////")
-                print("")
+                transmission_data = decoder.parse(msg, freq)
+                filter_callsign_key = "FILTER_CALLSIGN"
+                filter_callsign = config[filter_callsign_key]
+                if filter_callsign_key in config and filter_callsign is not None:
+                    if "callsign" in transmission_data:
+                        callsign = transmission_data["callsign"]
+                        if callsign == filter_callsign:
+                            print(f"\n***Printing transmission for callsign: {callsign}***")
+                            self.print_transmission(transmission_data)
+                        else:
+                            print(f"\n***Callsign {filter_callsign} not found.***")
+                else:
+                    print(f"\n***No callsign specified printing all transmissions.***")
+                    self.print_transmission(transmission_data)
 
-                logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%2.6f %s : %s %s",
-                             stationName,
-                             mode,
-                             timestamp,
-                             db,
-                             dt,
-                             frequency,
-                             message,
-                             callsign,
-                             locator)
-                if "mode" in out:
-                    if "callsign" in out and "locator" in out:
-                        PskReporter.getSharedInstance(self.getStation()).spot(out)
+                if "mode" in transmission_data:
+                    if "callsign" in transmission_data and "locator" in transmission_data:
+                        PskReporter.getSharedInstance(self.getStation()).spot(transmission_data)
                         # upload beacons to wsprnet as well
-                        if out["mode"] in ["WSPR", "FST4W"]:
-                            Wsprnet.getSharedInstance(self.getStation()).spot(out)
+                        if transmission_data["mode"] in ["WSPR", "FST4W"]:
+                            Wsprnet.getSharedInstance(self.getStation()).spot(transmission_data)
 
             except ValueError:
                 logging.exception("error while parsing wsjt message")
