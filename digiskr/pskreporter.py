@@ -68,19 +68,19 @@ class PskReporter(object):
                 pass
             else:
                 self.spots.append(spot)
-            self.scheduleNextUpload()
+            # self.scheduleNextUpload()
 
-    def upload(self):
-        try:
-            with self.spotLock:
-                self.timer = None
-                spots = self.spots
-                self.spots = []
-            if spots:
-                self.uploader.upload(spots)
-                self.savelog(spots)
-        except Exception:
-            logging.exception("Failed to upload spots")
+    # def upload(self):
+    #     try:
+    #         with self.spotLock:
+    #             self.timer = None
+    #             spots = self.spots
+    #             self.spots = []
+    #         if spots:
+    #             self.uploader.upload(spots)
+    #             self.savelog(spots)
+    #     except Exception:
+    #         logging.exception("Failed to upload spots")
 
     def savelog(self, spots):
         spot_lines = []
@@ -119,10 +119,10 @@ class Uploader(object):
         self.sequence = 0
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    def upload(self, spots):
-        logging.warning("uploading %i spots               ", len(spots))
-        for packet in self.getPackets(spots):
-            self.socket.sendto(packet, ("report.pskreporter.info", 4739))
+    # def upload(self, spots):
+    #     logging.warning("uploading %i spots               ", len(spots))
+    #     for packet in self.getPackets(spots):
+    #         self.socket.sendto(packet, ("report.pskreporter.info", 4739))
 
     def getPackets(self, spots):
         encoded = [self.encodeSpot(spot) for spot in spots]
